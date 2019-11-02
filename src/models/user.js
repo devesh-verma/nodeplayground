@@ -24,7 +24,6 @@ const userSchema = new mongoose.Schema({
         required: true,
         trim: true,
         minlength: 7,
-        lowercase: true,
         validate(password) {
             if (password.toLowerCase().includes('password')) {
                 throw new Error('Password cannot be password')
