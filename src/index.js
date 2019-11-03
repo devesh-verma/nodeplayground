@@ -26,4 +26,4 @@ const myFunc = async () => {
     console.log(data)
 }
 
-myFunc()
+// myFunc()
