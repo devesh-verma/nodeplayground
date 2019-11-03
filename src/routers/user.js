@@ -9,8 +9,8 @@ router.post('/users', async (req, res) => {
 
     try {
         await user.save()
-        const token = user.generateAuthToken()
-        res.status(201).status(201).send({ user: user, token: token })
+        const token = await user.generateAuthToken()
+        res.status(201).send({ user: user, token: token })
     } catch (error) {
         res.status(400).send(error)
     }
@@ -58,25 +58,8 @@ router.get('/users/me', auth, async (req, res) => {
     res.send(req.user)
 })
 
-router.get('/users/:id', async (req, res) => {
-    const _id = req.params.id
-
-    try {
-        const user = await User.findById(_id)
-
-        if (!user) {
-            console.log("no such user")
-            res.status(404).send()
-        } else {
-            res.send(user)
-        }
-    } catch (error) {
-        res.status(500).send(error)
-    }
-})
-
-router.patch('/users/:id', async (req, res) => {
-    const _id = req.params.id
+router.patch('/users/me', auth, async (req, res) => {
+    // const _id = req.user.id
     const updates = Object.keys(req.body)
     const allowedUpdates = ['name', 'email', 'password', 'age']
     const isValidOperation = updates.every((update) => {
@@ -88,35 +71,21 @@ router.patch('/users/:id', async (req, res) => {
     }
 
     try {
-        // this way cannot bypass mongoose middleware
-        const user = await User.findById(_id)
         updates.forEach((update) => {
-            user[update] = req.body[update]
+            req.user[update] = req.body[update]
         })
-
-        await user.save()
-
-        // The below bypasses mongoose middleware
-        // const user = await User.findByIdAndUpdate(_id, req.body, { new: true, runValidators: true })
-
-        if (!user) {
-            return res.status(404).send()
-        }
-        res.send(user)
+        await req.user.save()
+        res.send(req.user)
     } catch (error) {
         res.status(400).send(error)
     }
 })
 
-router.delete('/users/:id', async (req, res) => {
-    const _id = req.params.id
+router.delete('/users/me', auth, async (req, res) => {
+    const _id = req.user._id
     try {
-        const user = await User.findByIdAndDelete(_id)
-        if (!user) {
-            res.status(404).send('No such user')
-        } else {
-            res.send({ success: 'user deletetion successful', user: user })
-        }
+        await req.user.remove()
+        res.send({ success: 'user deletetion successful', user: req.user })
     } catch (error) {
         res.status(500).send(error)
     }
