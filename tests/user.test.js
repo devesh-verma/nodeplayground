@@ -84,7 +84,7 @@ test('Should not get profile for unauthenticated user', async () => {
 
 // delete user profile of authenticated user
 test('Should delete profile of authenticated user', async () => {
-    const response = await request(app)
+    await request(app)
         .delete('/users/me')
         .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
         .send()
@@ -101,4 +101,11 @@ test('Should not delete profile of unauthenticated user', async () => {
         .delete('/users/me')
         .send()
         .expect(401)
+})
+
+
+afterAll(done => {
+    // Closing the DB connection allows Jest to exit successfully.
+    mongoose.connection.close()
+    done()
 })
