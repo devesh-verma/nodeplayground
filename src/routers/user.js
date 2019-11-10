@@ -22,7 +22,7 @@ router.post('/users/login', async (req, res) => {
         const token = await user.generateAuthToken()
         res.send({ user: user, token: token })
     } catch (error) {
-        console.log('error:', error)
+        // console.log('error:', error)
         res.status(400).send({ error: error })
     }
 })
@@ -82,7 +82,6 @@ router.patch('/users/me', auth, async (req, res) => {
 })
 
 router.delete('/users/me', auth, async (req, res) => {
-    const _id = req.user._id
     try {
         await req.user.remove()
         res.send({ success: 'user deletetion successful', user: req.user })

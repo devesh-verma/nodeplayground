@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const validator = require('validator')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const Task = require('../models/task')
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -61,7 +62,7 @@ userSchema.methods.toJSON = function () {
 
 userSchema.methods.generateAuthToken = async function () {
     const user = this
-    const token = jwt.sign({ _id: user._id.toString() }, 'thisismynewcourse')
+    const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET)
 
     user.tokens = user.tokens.concat({ token: token })
     await user.save()
@@ -78,12 +79,12 @@ userSchema.statics.findByCredentials = async (email, password) => {
     }
 
     const isMatch = await bcrypt.compare(password, user.password)
-    console.log(isMatch)
+    // console.log(isMatch)
     if (!isMatch) {
-        console.log('auth failure')
+        // console.log('auth failure')
         throw new Error('Unable to login')
     }
-    console.log('auth success')
+    // console.log('auth success')
     return user
 }
 
@@ -95,6 +96,15 @@ userSchema.pre('save', async function (next) {
         user.password = await bcrypt.hash(user.password, 8)
     }
 
+    next()
+})
+
+// Delete user taks when user is deleted
+userSchema.pre('remove', async function (next) {
+    const user = this
+    await Task.deleteMany({
+        owner: user._id
+    })
     next()
 })
 
